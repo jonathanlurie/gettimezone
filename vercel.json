@@ -1,6 +1,6 @@
 {
   "functions": {
-    "api/timezone.js": {
+    "pages/api/timezone.js": {
       "includeFiles": "data/**"
     }
   }
