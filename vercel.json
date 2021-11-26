@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "api/backend.js": {
+      "includeFiles": "data/**"
+    }
+  }
+}
