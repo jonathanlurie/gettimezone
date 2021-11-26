@@ -2,7 +2,7 @@ import fs from 'fs/promises'
 import { join } from 'path'
 import pointInPolygon from 'robust-point-in-polygon'
 import SunCalc from 'suncalc' // https://github.com/mourner/suncalc
-import bvh from '/data/bvh.json'
+import bvh from '/public/data/bvh.json'
 
 
 const polygonCache = {}
@@ -58,7 +58,7 @@ async function loadPolygon(tzId, index) {
   }
 
   try {
-    const polygonPath = join('data', 'tz_bin', tzId, `${index}.bin`)
+    const polygonPath = join(process.cwd(), 'public', 'data', 'tz_bin', tzId, `${index}.bin`)
     console.log('Polygon for timezone ', decodeURIComponent(tzId), ' is file ', polygonPath)
     const binary = await fs.readFile(polygonPath)
     const arrayBuffer = new Uint8Array(binary).buffer
