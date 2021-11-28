@@ -13,6 +13,7 @@ export default async function handler(req, res) {
     const date = 'timestamp' in req.query ? new Date(parseFloat(req.query.timestamp) * 1000) : new Date()
     data = await getLocalTimeInfo([parseFloat(req.query.lon), parseFloat(req.query.lat)], date)
   } catch(e) {
+    console.log(e);
     return res.status(400).json({ data: null, error: e.message })
   }
 

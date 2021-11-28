@@ -108,6 +108,15 @@ export async function getTimezoneId(point) {
 }
 
 
+function getFormattedDate(formatter, date) {
+  if (!isFinite(date)) {
+    return null
+  }
+
+  return formatter.format(date)
+}
+
+
 export async function getLocalTimeInfo(point, date = new Date()) {
   const datePlusOneDay = new Date()
   datePlusOneDay.setUTCDate(date.getUTCDate() + 1)
@@ -121,7 +130,7 @@ export async function getLocalTimeInfo(point, date = new Date()) {
 
   Object.keys(sunTimes).forEach(k => {
     if (sunTimes[k] instanceof Date) {
-      sunTimes[k] = datetimeFormatter.format(sunTimes[k])
+      sunTimes[k] = getFormattedDate(datetimeFormatter, sunTimes[k])
     }
   })
 
@@ -129,7 +138,7 @@ export async function getLocalTimeInfo(point, date = new Date()) {
 
   Object.keys(sunTimesMinus).forEach(k => {
     if (sunTimesMinus[k] instanceof Date) {
-      sunTimesMinus[k] = datetimeFormatter.format(sunTimesMinus[k])
+      sunTimesMinus[k] = getFormattedDate(datetimeFormatter, sunTimesMinus[k])
     }
   })
 
@@ -137,7 +146,7 @@ export async function getLocalTimeInfo(point, date = new Date()) {
 
   Object.keys(datePlusOneDay).forEach(k => {
     if (datePlusOneDay[k] instanceof Date) {
-      datePlusOneDay[k] = datetimeFormatter.format(datePlusOneDay[k])
+      datePlusOneDay[k] = getFormattedDate(datetimeFormatter, datePlusOneDay[k])
     }
   })
   
@@ -145,7 +154,7 @@ export async function getLocalTimeInfo(point, date = new Date()) {
 
   Object.keys(moonTimes).forEach(k => {
     if (moonTimes[k] instanceof Date) {
-      moonTimes[k] = datetimeFormatter.format(moonTimes[k])
+      moonTimes[k] = getFormattedDate(datetimeFormatter, moonTimes[k])
     }
   })
 
@@ -153,7 +162,7 @@ export async function getLocalTimeInfo(point, date = new Date()) {
 
   Object.keys(moonTimesMinus).forEach(k => {
     if (moonTimesMinus[k] instanceof Date) {
-      moonTimesMinus[k] = datetimeFormatter.format(moonTimesMinus[k])
+      moonTimesMinus[k] = getFormattedDate(datetimeFormatter, moonTimesMinus[k])
     }
   })
 
@@ -161,7 +170,7 @@ export async function getLocalTimeInfo(point, date = new Date()) {
 
   Object.keys(moonTimesPlus).forEach(k => {
     if (moonTimesPlus[k] instanceof Date) {
-      moonTimesPlus[k] = datetimeFormatter.format(moonTimesPlus[k])
+      moonTimesPlus[k] = getFormattedDate(datetimeFormatter, moonTimesPlus[k])
     }
   })
 
