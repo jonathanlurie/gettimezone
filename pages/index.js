@@ -5,22 +5,43 @@ import * as topojson from "topojson-client"
 
 const SVG_NAMESPACE = 'http://www.w3.org/2000/svg'
 
-
 function polygon(points, options = {}) {
   const strokeWidth = 'strokeWidth' in options? options.strokeWidth : 0.1
   const strokeColor = 'strokeColor' in options ? options.strokeColor : '#000000'
   const opacity = 'opacity' in options ? options.opacity : 1
   const fillColor = 'fillColor' in options ? options.fillColor : '#ffffff'
-  
-  let pointsStr = ''
+  const holes = 'holes' in options ? options.holes : null
+  const polygonGroup = document.createElementNS(SVG_NAMESPACE, 'g')
+  const polygonPath = document.createElementNS(SVG_NAMESPACE, 'path')
+
+  let pointsStr = 'M '
   for (let i = 0; i < points.length; i += 1) {
-    pointsStr += `${points[i][0]},${points[i][1]} `
+    pointsStr += `${points[i][0]} ${points[i][1]} `
+  }
+  pointsStr += ' Z '
+
+  // punching some holes in the polygon
+  if(holes && Array.isArray(holes)) {
+    for (let holeIndex = 0; holeIndex < holes.length; holeIndex += 1) {
+      const holePolygon = holes[holeIndex]
+
+      let holePointsStr = ' M '
+      for (let i = 0; i < holePolygon.length; i += 1) {
+        holePointsStr += `${holePolygon[i][0]} ${holePolygon[i][1]} `
+      }
+      holePointsStr += ' Z ' 
+      console.log(holePointsStr);
+    }
+
+    // console.log(polygonPath);
+    pointsStr += holePointsStr
   }
 
-  const polygon = document.createElementNS(SVG_NAMESPACE, 'polygon')
-  polygon.setAttributeNS(null, 'points', pointsStr)
-  polygon.setAttributeNS(null, 'style', `fill: ${fillColor}; opacity: ${opacity}; stroke-width: ${strokeWidth}; stroke: ${strokeColor}`)
-  return polygon
+  polygonPath.setAttributeNS(null, 'd', pointsStr)
+  polygonPath.setAttributeNS(null, 'fill-rule', 'evenodd')
+  polygonGroup.setAttributeNS(null, 'style', `fill: ${fillColor}; opacity: ${opacity}; stroke-width: ${strokeWidth}; stroke: ${strokeColor}`)
+  polygonGroup.appendChild(polygonPath)
+  return polygonGroup
 }
 
 
@@ -85,7 +106,8 @@ export default class Home extends React.Component {
     this._canvas = null
 
     this.state = {
-      tzInfo: ''
+      tzInfo: '',
+      lonLat: '',
     }
   }
 
@@ -109,22 +131,17 @@ export default class Home extends React.Component {
     const parentDiv = document.getElementById('container')
     const canvas = document.createElementNS(SVG_NAMESPACE, 'svg')
     this._canvas = canvas
-    // canvas.setAttribute('xmlns', SVG_NAMESPACE)
-    // canvas.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
     canvas.setAttribute('height', `${height}`)
     canvas.setAttribute('width', `${width}`)
     canvas.setAttribute('style', `background-color: ${background};`)
     canvas.setAttribute('viewBox', `0 0 ${width} ${height}`)
     this._svgContainer.current.appendChild(canvas)
 
-    const simplifiedTzAreas = {}
-
     for (let i = 0; i < geojsonCountries.features.length; i += 1) {
-      const tz = geojsonCountries.features[i]
-      const geometry = tz.geometry
-      const id = tz.properties.tzid
+      const country = geojsonCountries.features[i]
+      const geometry = country.geometry
+      const id = country.properties.A3
       const geometryType = geometry.type
-      simplifiedTzAreas[id] = []
   
       // let them all have the same shape (array of array of array)
       const allPolygons = geometryType === 'MultiPolygon' ? geometry : [geometry]
@@ -134,11 +151,12 @@ export default class Home extends React.Component {
       if (geometryType === 'MultiPolygon') {
         geometry.coordinates.forEach((el, i) => {
           const sumplifiedPoly = el[0] //simplify(el[0])
-          simplifiedTzAreas[id].push(sumplifiedPoly)
+          let holes = el.length > 1 ? el.slice(1).map(hp => equirectangularProjectionForward(hp)) : null
           const xyArr = equirectangularProjectionForward(sumplifiedPoly)
           const p = polygon(xyArr, {
             fillColor: countryColor,
             strokeWidth: 0,
+            holes,
           })
           p.id = `${id} ${i}`
           canvas.appendChild(p)
@@ -146,12 +164,13 @@ export default class Home extends React.Component {
   
       } else if (geometryType === 'Polygon') {
         const el = geometry.coordinates[0]
+        const holes = geometry.coordinates.length > 1 ? geometry.coordinates.slice(1).map(hp => equirectangularProjectionForward(hp)) : null
         const sumplifiedPoly = el // simplify(el)
-        simplifiedTzAreas[id].push(sumplifiedPoly)
         const xyArr = equirectangularProjectionForward(sumplifiedPoly)
         const p = polygon(xyArr, {
           fillColor: countryColor,
           strokeWidth: 0,
+          holes,
         })
         p.id = id
         canvas.appendChild(p)
@@ -169,6 +188,11 @@ export default class Home extends React.Component {
         this.setState({tzInfo: JSON.stringify(tz.data, null, 2)})
       }
     })
+
+    canvas.addEventListener('mousemove', async (evt) => {
+      const lonLat = equirectangularProjectionReverse([evt.layerX, evt.layerY])
+      this.setState({lonLat})
+    })
   }
 
   render() {
@@ -180,21 +204,31 @@ export default class Home extends React.Component {
           <link rel="icon" href="/favicon.ico" />
         </Head>
 
-        <div>
-
-        </div>
-
-
+        <div
+          style={{
+            display: 'inline-grid',
+          }}
+        >
         <div ref={this._svgContainer} />
         
+        <textarea 
+          style={{
+            textAlign: 'center'
+          }}
+          value={`lon: ${this.state.lonLat[0]}   lat: ${this.state.lonLat[1]}`}>
+        </textarea>
+
         <textarea 
           style={{
             width: 1000,
             height: 400,
           }}
           value={this.state.tzInfo}>
-          
         </textarea>
+        </div>
+
+
+       
 
       </div>
     )
