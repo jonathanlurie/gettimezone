@@ -58,8 +58,8 @@ async function loadPolygon(tzId, index) {
   }
 
   try {
-    const polygonPath = join(process.cwd(), 'public', 'data', 'tz_bin', tzId, `${index}.bin`)
-    console.log('Polygon for timezone ', decodeURIComponent(tzId), ' is file ', polygonPath)
+    const polygonPath = join(process.cwd(), 'public', 'data', 'tz_bin', encodeURIComponent(tzId), `${index}.bin`)
+    console.log('Polygon for timezone ', tzId, ' is file ', polygonPath)
     const binary = await fs.readFile(polygonPath)
     const arrayBuffer = new Uint8Array(binary).buffer
     const polygonStreamline = new Float32Array(arrayBuffer)
@@ -101,7 +101,7 @@ export async function getTimezoneId(point) {
     })
 
   if (matches.length) {
-    return decodeURIComponent(matches[0].tz)
+    return matches[0].tz
   }
 
   return null
