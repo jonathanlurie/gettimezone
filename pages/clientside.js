@@ -108,6 +108,7 @@ export default class Home extends React.Component {
     this.state = {
       tzInfo: '',
       lonLat: '',
+      lookupTime: 0,
     }
   }
 
@@ -188,8 +189,10 @@ export default class Home extends React.Component {
 
     canvas.addEventListener('mousemove', async (evt) => {
       const lonLat = equirectangularProjectionReverse([evt.layerX, evt.layerY])
+      const t0 = performance.now()
       const tzInfo = getLocalTimeInfo(lonLat)
-      this.setState({lonLat, tzInfo: JSON.stringify(tzInfo, null, 2)})
+      const t1 = performance.now()
+      this.setState({lonLat, tzInfo: JSON.stringify(tzInfo, null, 2), lookupTime: t1 - t0})
     })
   }
 
@@ -213,7 +216,7 @@ export default class Home extends React.Component {
           style={{
             textAlign: 'center'
           }}
-          value={`lon: ${this.state.lonLat[0]}   lat: ${this.state.lonLat[1]}`}>
+          value={`lon: ${this.state.lonLat[0]}   lat: ${this.state.lonLat[1]}   (lookup time: ${this.state.lookupTime.toFixed(3)}ms)`}>
         </textarea>
 
         <textarea 
