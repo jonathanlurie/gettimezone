@@ -2,6 +2,7 @@ import Head from 'next/head'
 import React from 'react'
 import styles from '../styles/Home.module.css'
 import * as topojson from "topojson-client"
+import { getAllPolygons, getLocalTimeInfo } from '../src/frontend'
 
 const SVG_NAMESPACE = 'http://www.w3.org/2000/svg'
 
@@ -111,11 +112,14 @@ export default class Home extends React.Component {
   }
 
   componentDidMount() {
+    const ps = getAllPolygons()
+    console.log(ps)
     this.init()
   }
 
 
   async init() {
+    
     const mapRes = await fetch('countries-land-10km.geo.json')
     const mapTopo = await mapRes.json()
     console.log(mapTopo);
@@ -178,19 +182,14 @@ export default class Home extends React.Component {
 
     canvas.addEventListener('mousedown', async (evt) => {
       const lonLat = equirectangularProjectionReverse([evt.layerX, evt.layerY])
-      const resTz = await fetch(`/api/timezone?lon=${lonLat[0]}&lat=${lonLat[1]}`)
-      const tz = await resTz.json()
-
-      if (tz.error) {
-        console.log('ERROR', tz.error)
-      } else {
-        this.setState({tzInfo: JSON.stringify(tz.data, null, 2)})
-      }
+      const tzInfo = getLocalTimeInfo(lonLat)
+      this.setState({tzInfo: JSON.stringify(tzInfo, null, 2)})
     })
 
     canvas.addEventListener('mousemove', async (evt) => {
       const lonLat = equirectangularProjectionReverse([evt.layerX, evt.layerY])
-      this.setState({lonLat})
+      const tzInfo = getLocalTimeInfo(lonLat)
+      this.setState({lonLat, tzInfo: JSON.stringify(tzInfo, null, 2)})
     })
   }
 
